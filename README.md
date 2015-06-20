@@ -7,7 +7,7 @@ Mediatomb (http://mediatomb.cc/) servers can be explored, which means their entr
 saved to an elasticsearch database.
 
 ## Future:
-The protocal for DLNA SOAP browsing needs to be implemented.
+The protocol for DLNA SOAP browsing needs to be improved.
 Scans with Wireshark showed that XMS_MediaRegistrar seems to play be big role.
 This service is not implemented in MediaTomb.
 
