@@ -13,7 +13,7 @@ This service is not implemented in MediaTomb.
 
 Feel free to commit your ideas. 
 
-## Thanks to miniupnp (https://github.com/miniupnp/miniupnp):
+#### Thanks to miniupnp (https://github.com/miniupnp/miniupnp):
 Using a custom fork here. Will make a pull request soon.
 
 No warranty for anything.
