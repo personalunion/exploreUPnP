@@ -72,3 +72,5 @@ build-*
 *.exe
 *.out
 *.app
+src/exploreUPnP
+

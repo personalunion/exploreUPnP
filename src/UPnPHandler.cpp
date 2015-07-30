@@ -69,6 +69,7 @@ int UPnPHandler::init(QUrl descriptionUrl, QString eventSubUrl, QString controlU
     m_parser->setSearchTerm("container");
     int ret = startGet();
     //m_socket->close();
+    delete m_parser;
     return ret;
 }
 
@@ -94,8 +95,9 @@ int UPnPHandler::getReadyRead(QByteArray content)
     }
 
     content.remove(0, end);
+    QString serviceType = "urn:schemas-upnp-org:service:ContentDirectory:1";
     QList<QMap<QString, QString> > *urls = new QList<QMap<QString, QString> >();
-    int ret = m_parser->parseRootXML(content, urls);
+    int ret = m_parser->parseRootXML(content, urls, serviceType);
     if(ret != -1)
     {
         /* Making sure no useless new urls are inserted */
@@ -109,6 +111,7 @@ int UPnPHandler::getReadyRead(QByteArray content)
             subscribeUrl.setPath(urls->at(0).value("eventSubURL"));
             setActionUrl(browseUrl);
             setSubscribeUrl(subscribeUrl);
+            setServicetype(serviceType);
         }
     }
 
@@ -129,7 +132,7 @@ int UPnPHandler::subscribe()
     QString url = m_subscribeUrl.host();
     /* There are other localhost addresses available in m_ownUrls
        but it does not seem to make a difference, which one is used
-       TODO check, maybe with loop*/
+       TODO check, maybe with loop */
     QString s = m_ownUrls[0].host();
     s.prepend("http://");
     val.insert(1, m_ownUrls[0].toString());
@@ -150,6 +153,7 @@ int UPnPHandler::subscribe()
         if(bytesWritten < 0)
         {
             socket->close();
+            delete socket;
             ret = -1;
         }
     }
@@ -157,11 +161,14 @@ int UPnPHandler::subscribe()
     if (socket->waitForReadyRead(firstByteReceivedTimeout))
     {
         QByteArray ba = socket->readAll();
+        socket->close();
+        delete socket;
     }
     else
     {
+        delete socket;
         ret = -1;
-        m_socket->close();
+        //m_socket->close();
     }
     if(listener.waitForNewConnection(3000))
     {
@@ -189,6 +196,7 @@ int UPnPHandler::subscribe()
                 if(bytesWritten < 0)
                 {
                     socket->close();
+                    delete socket;
                 }
             }
             if(socket->waitForReadyRead(3000))
@@ -197,10 +205,12 @@ int UPnPHandler::subscribe()
             }
             bytesWritten = 0;
             socket->close();
+            delete socket;
         }
         else
         {
             socket->close();
+            delete socket;
         }
     }else{
         qDebug() << "No tcp connection established"; //<< listener.errorString(); //TODO check why always
@@ -212,6 +222,7 @@ int UPnPHandler::subscribe()
     {
         ret = -1;
     }
+    //delete socket;
     return ret;
 }
 
@@ -298,12 +309,11 @@ int UPnPHandler::setupTCPSocketAndSend(QString objectID, int counter)
                 continue;
             }
         }
-        /* Handling items when available */
+        /* Handling items if available */
         if(!foundObjs.isEmpty() && counter < foundObjs.length())
         {
             m_socket->close();
             delete m_socket;
-            //qDebug() << "Searching " + foundObjs.at(counter).first + " "  + foundObjs.at(counter).second;
             counter = setupTCPSocketAndSend(foundObjs.at(counter).second, counter);
             continue;
         }

@@ -69,7 +69,6 @@ signals:
 
 public slots:
     void result();
-    void waitUntilFinished();
     void readAnswer();
 
 private:

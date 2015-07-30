@@ -10,7 +10,7 @@ class Parser : public QObject
 public:
     explicit Parser(QObject *parent = 0);
     ~Parser();
-    int parseRootXML(QByteArray ba, QList<QMap<QString, QString> > *contents);
+    int parseRootXML(QByteArray ba, QList<QMap<QString, QString> > *contents, QString serviceType);
     QList<QMap<QString, QString> > parseXMLtoMaps(QByteArray ba, QString elementToSearchFor);
     QList<QMap<QString, QString> > parseUpnpReply(int expectedLength);
 

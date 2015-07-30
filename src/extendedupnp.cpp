@@ -89,6 +89,10 @@ bool extendedUPnP::start()
             {
                 mServer.insert(EventSubUrl, m_handler->subscribeUrl().path());
             }
+            if(mServer.value(ServiceType) != m_handler->servicetype())
+            {
+                mServer.insert(ServiceType, m_handler->servicetype());
+            }
             results.append(mServer);
             m_handler->cleanup();
         }else{
@@ -111,10 +115,6 @@ bool extendedUPnP::start()
         ret = 0;
     }
     emit finished();
-    if(results.isEmpty())
-    {
-        return false;
-    }
     return true;
 }
 
@@ -167,6 +167,16 @@ void extendedUPnP::result()
        data.append(jsonString);
        _rep = nam->post(req, data);
    }
+   if(results.isEmpty())
+   {
+       QVariantMap deviceResult;
+       deviceResult.insert("post_date", formattedDateTime);
+       QByteArray data((QJsonDocument
+                        (QJsonObject::fromVariantMap(deviceResult)))
+                       .toJson(QJsonDocument::Compact));
+       qDebug() << data;
+       _rep = nam->post(req, data);
+   }
    connect(_rep, SIGNAL(readyRead()), this, SLOT(readAnswer()));
 }
 
@@ -182,7 +192,6 @@ QList<extendedUPnP::UPnPHash> extendedUPnP::quickDevicesCheck(UPNPDev *list)
         UPnPHash resultHash;
         qDebug() << "Checking " << l->descURL;
         int xmlFound = UPNP_GetIGDFromUrl(l->descURL, &urls, &data, lanaddr, sizeof(lanaddr));
-        qDebug() << "Result:" << xmlFound;
         if(xmlFound)
         {
             /* These URLs will be needed for accessing and controlling Mediaservers with SOAP */
@@ -261,26 +270,18 @@ void extendedUPnP::printResultsToMap(QVariantList *list)
     }
 }
 
-void extendedUPnP::waitUntilFinished()
-{
-    //TODO wait for all mediaservers, then ...
-    QList<QMap<QString, QString> > mediaResults;
-    int i = 0;
-    while(i == 0)
-    {
-        mediaResults = m_handler->foundContent();
-    }
-    emit finished();
-}
-
 void extendedUPnP::readAnswer()
 {
     QByteArray ba = _rep->readAll();
-    if(ba.contains("\"created\":true")){
+    if(ba.contains("\"created\":true"))
+    {
         qDebug() << "Successful: reply from server: " << ba;
+        delete m_handler;
         QCoreApplication::exit(0);
-    }else if(ba.contains("\"created\":false")){
+    }else if(ba.contains("\"created\":false"))
+    {
         qDebug() << "Unsuccessful: reply from server: " << ba;
+        delete m_handler;
         QCoreApplication::exit(-1);
     }
 }

@@ -61,10 +61,9 @@ void Parser::setResults(const QHash<QString, QString> &results)
 }
 
 
-int Parser::parseRootXML(QByteArray ba, QList<QMap<QString, QString> > *contents)
+int Parser::parseRootXML(QByteArray ba, QList<QMap<QString, QString> > *contents, QString serviceType)
 {
     QXmlStreamReader * xmlReader = new QXmlStreamReader(ba);
-    QString serviceType = "urn:schemas-upnp-org:service:ContentDirectory:1";
     QString controlURL = "controlURL";
     QString eventSubURL = "eventSubURL";
     int foundElementFlag = 0;
@@ -115,7 +114,9 @@ int Parser::parseRootXML(QByteArray ba, QList<QMap<QString, QString> > *contents
     if(xmlReader->hasError()){
             qDebug() << "xmlFile.xml Parse Error";
             return -1;
+            delete xmlReader;
     }
+    delete xmlReader;
     return 0;
 }
 
@@ -188,8 +189,10 @@ QList<QMap<QString, QString> > Parser::parseXMLtoMaps(QByteArray ba, QString ele
              * end of the byte array.
              * This can happen */
             /* contents.clear(); */
+            delete xmlReader;
             return contents;
     }
+    delete xmlReader;
     return contents;
 }
 
